@@ -1,0 +1,114 @@
+/* =========================================================
+   B 버전에서 더한 것 (index-b.html 에서만 불러옴)
+   ① 커서 · 가까이 가면 반응  ② 위쪽 안내판(안내 방송 · 탑승 기록) · 가만히 있으면 툭 건드리기
+   ③ 키오스크 대기 화면  ④ 여권 속 탑승 기록 도장
+   ========================================================= */
+
+/* ---------- ① 종이비행기 커서 ---------- */
+body {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M3 3 L28 13 L15 15 L13 28 Z' fill='%23fff' stroke='%231C2033' stroke-width='1.6' stroke-linejoin='round'/%3E%3Cpath d='M3 3 L15 15' stroke='%231C2033' stroke-width='1.2'/%3E%3C/svg%3E") 3 3, auto;
+}
+/* 누를 수 있는 것 위에서는 "탑승" 이름표가 붙은 커서 */
+.passport, .tag, .suitcase, .window, .belt-photo, .tile, .mini, .case-card, .doc-tag,
+a, button, .bb-msg, .bb-stamps {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='32'%3E%3Cpath d='M3 3 L28 13 L15 15 L13 28 Z' fill='%23F6C744' stroke='%231C2033' stroke-width='1.6' stroke-linejoin='round'/%3E%3Cpath d='M3 3 L15 15' stroke='%231C2033' stroke-width='1.2'/%3E%3Crect x='30' y='14' width='38' height='16' rx='8' fill='%231C2033'/%3E%3Ctext x='49' y='26' font-size='10' font-weight='700' fill='%23F6C744' text-anchor='middle' font-family='sans-serif'%3E%ED%83%91%EC%8A%B9%3C/text%3E%3C/svg%3E") 3 3, pointer !important;
+}
+
+/* ---------- ① 마우스가 가까이 오면 살짝 떠오름 (script: .near) ---------- */
+.passport, .tag, .suitcase, .window { transition: transform .25s, scale .25s; }
+.near { scale: 1.06; }
+.near .click-badge { scale: 1.15; transition: scale .2s; }
+
+/* ---------- ② 위쪽 안내판 ---------- */
+.board-b {
+  position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 6;
+  display: flex; align-items: center; gap: 8px;
+  max-width: calc(100vw - 24px);
+}
+.board-b .guide-btn { position: static; transform: none; flex: none; }
+.bb-msg, .bb-stamps {
+  border: 0; border-radius: 999px; background: rgba(28,32,51,.88);
+  font-size: 12px; font-weight: 700; padding: 6px 14px; height: 30px;
+  display: flex; align-items: center; gap: 6px;
+}
+.bb-msg { color: var(--yellow); min-width: 0; max-width: 560px; }
+.bb-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: opacity .3s; }
+.bb-text.fade { opacity: 0; }
+.bb-stamps { color: #fff; flex: none; }
+.bb-dots { display: flex; gap: 4px; }
+.bb-dots i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.6); }
+.bb-dots i.on { background: var(--c); border-color: var(--c); }
+.bb-stamps.done { background: var(--yellow); color: var(--ink); }
+.bb-stamps.pop { animation: bb-pop .5s; }
+@keyframes bb-pop { 40% { scale: 1.25; } }
+
+/* 도장이 찍혔을 때 잠깐 뜨는 알림 */
+.toast-b {
+  position: fixed; top: 52px; left: 50%; z-index: 45;
+  transform: translate(-50%, -10px); opacity: 0; pointer-events: none;
+  background: var(--paper); color: var(--ink);
+  border: 2px solid var(--ink); border-radius: 999px;
+  font-size: 13px; font-weight: 700; padding: 8px 16px;
+  box-shadow: 0 8px 20px rgba(0,0,0,.2);
+  transition: opacity .3s, transform .3s;
+}
+.toast-b.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* 안내 방송을 누르면 해당 물건이 노랗게 빛남 */
+.spot { animation: spot .8s ease-in-out 3; }
+@keyframes spot { 50% { filter: drop-shadow(0 0 14px rgba(246, 199, 68, 1)) drop-shadow(0 0 4px rgba(246, 199, 68, 1)); } }
+
+/* 10초 동안 아무것도 안 누르면 아직 안 본 물건이 살짝 흔들림 */
+.nudge { animation: nudge .9s ease-in-out; }
+@keyframes nudge {
+  20% { rotate: -5deg; } 40% { rotate: 5deg; } 60% { rotate: -3deg; } 80% { rotate: 2deg; }
+}
+
+/* ---------- ③ 키오스크 대기 화면 ---------- */
+.screen-attract {
+  position: absolute; inset: 14px; z-index: 2;
+  border-radius: 6px; overflow: hidden; background: #111;
+  display: none;
+}
+.screen.attract-on .screen-attract { display: block; }
+.screen-attract video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.screen-attract::after {   /* 글씨가 잘 보이게 아래쪽을 어둡게 */
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(rgba(0,0,0,.45), transparent 30%, transparent 55%, rgba(0,0,0,.65));
+}
+.at-title {
+  position: absolute; left: 14px; right: 14px; top: 12px; z-index: 1;
+  color: #fff; font-size: 13px; font-weight: 800; line-height: 1.3;
+}
+.at-title::before { content: "NOW SHOWING"; display: block; font-family: var(--mono); font-size: 9px; letter-spacing: 2px; color: var(--yellow); }
+.at-cta {
+  position: absolute; left: 50%; bottom: 16px; z-index: 1; transform: translateX(-50%);
+  white-space: nowrap;
+  background: var(--yellow); color: var(--ink); font-size: 14px; font-weight: 800;
+  padding: 8px 16px; border-radius: 999px;
+  animation: at-blink 1.4s ease-in-out infinite;
+}
+@keyframes at-blink { 50% { opacity: .55; } }
+
+/* ---------- ④ 여권 속 탑승 기록 도장 ---------- */
+.stamp-list { list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.stamp-list li {
+  aspect-ratio: 1; border-radius: 50%;
+  border: 2px dashed #CFC6B2; color: #B9B09C;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  font-family: var(--mono); font-size: 10px; line-height: 1.2;
+}
+.stamp-list li.on {
+  border: 3px double var(--c); color: var(--c);
+  transform: rotate(var(--t));
+}
+.stamp-list li b { font-size: 12px; }
+
+@media (max-width: 900px) {
+  .board-b { position: absolute; }
+  .bb-msg { display: none; }
+  .toast-b { position: fixed; top: 48px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nudge, .spot, .at-cta, .bb-stamps.pop { animation: none; }
+}

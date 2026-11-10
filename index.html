@@ -1,18 +1,542 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-    <meta charset="UTF-8" />
-    <title>title</title>
-  
-    
-        
-     
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Self Check-In · 영상 포트폴리오 (B)</title>
+  <!-- 본문 글꼴(Noto Sans KR)은 인터넷에서, 나머지 글꼴은 fonts 폴더에서 불러옵니다 -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+  <link rel="stylesheet" href="fonts/black-han-sans/400.css">
+  <link rel="stylesheet" href="fonts/gaegu/400.css">
+  <link rel="stylesheet" href="fonts/gaegu/700.css">
+  <link rel="stylesheet" href="fonts/space-mono/400.css">
+  <link rel="stylesheet" href="fonts/space-mono/700.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="alt.css">  <!-- B 버전에서 더한 것 -->
+  <script>
+    window.LANDING_KEY = 'landingSeenB';   // B 버전은 첫 화면 기록을 따로 씀
+    // 장면 크기 맞춤 : 화면 높이 ÷ 1000 (최대 1.25배). 폭 900px 이하(휴대폰·태블릿)는 맞추지 않음
+    function fitStage() {
+      var r = document.documentElement;
+      if (innerWidth <= 900) { r.style.removeProperty('--s'); return; }
+      r.style.setProperty('--s', Math.min(innerHeight / 1000, 1.25).toFixed(4));
+    }
+    fitStage();
+    addEventListener('resize', fitStage);
+    // 처음 방문이면 첫 화면(랜딩)을 바로 띄움
+    // 켤 때마다 처음 상태로 시작 (true) / 한 번 본 사람에게는 첫 화면을 건너뜀 (false)
+    window.RESET_EVERY_TIME = true;
+    try { if (window.RESET_EVERY_TIME || localStorage.getItem(window.LANDING_KEY || 'landingSeen') !== '1') document.documentElement.classList.add('show-landing'); }
+    catch (e) { document.documentElement.classList.add('show-landing'); }
+  </script>
 </head>
 <body>
-    
-<video src="video/02.mp4" width="500px" controls></video>
-<video src="video/03.mp4" width="500px" controls></video>
+
+<!-- ===== 배경 장식 =====
+     물건 하나가 div 하나입니다. 지우거나, style.css 에서 위치(left/top 등)를 바꾸면 됩니다. -->
+<!-- ===== 장면 : 장식 · 벨트 · 키오스크를 한 장면(가로 자유 × 세로 1000px)으로 묶음 =====
+     창 높이에 맞춰 장면 전체가 같은 비율로 커지고 작아집니다 (head 안 스크립트) -->
+<div class="stage" id="stage">
+<div class="deco" aria-hidden="true">
+  <svg class="flight-path" viewBox="0 0 1440 900" preserveAspectRatio="none">
+    <path d="M -40 760 C 260 520, 420 900, 700 620 S 1180 120, 1500 260" />
+  </svg>
+  <span class="deco-plane">✈</span>
+
+  <!-- 탑승구 표지판 -->
+  <div class="gate-sign"><b>GATE</b><span>A1–C4</span><i>→</i></div>
+
+  <!-- 여권 -->
+  <div class="passport" data-open="about" title="여권 열기 · 소개">
+    <span class="pp-top">대한민국</span>
+    <span class="pp-emblem"></span>
+    <span class="pp-title">여권<br><small>PASSPORT</small></span>
+    <span class="click-badge">소개 보기</span>
+  </div>
+
+  <!-- 폴라로이드 사진 (images 폴더의 사진을 바꿔 넣을 수 있어요) -->
+
+  <!-- 엽서 -->
+  <div class="postcard">
+    <img src="images/deco-fireworks.jpg" alt="">
+    <div class="pc-back">
+      <span class="pc-stamp">✈<small>KOREA</small></span>
+      <span class="pc-mark">AIR MAIL</span>
+      <p>부산에서<br>불꽃놀이 봤어요!</p>
+    </div>
+  </div>
+
+  <!-- 여권 도장 -->
+  <div class="stamp s1"><b>SEL ⇄ PUS</b><small>2026 · 09</small></div>
+  <div class="stamp s2"><b>PRE → NOW</b><small>반만년 직항</small></div>
+
+  <!-- 수하물 태그 -->
+  <div class="tag" data-open="docs" title="기획서 · 스토리보드 보기">
+    <span class="tag-hole"></span>
+    <b>BAGGAGE</b>
+    <span>기획서 · 스토리보드</span>
+    <span class="click-badge">기획서 보기</span>
+  </div>
+
+  <!-- 비행기 창문 -->
+  <div class="window" title="마우스를 올리면 작품 하이라이트 · 누르면 그 작품 탑승권">
+    <div class="window-glass">
+      <img src="images/deco-window.jpg" alt="">
+      <video class="window-reel" muted playsinline preload="none"></video>
+      <span class="window-label"></span>
+      <span class="window-blind"></span>
+    </div>
+    <span class="click-badge">올려서 하이라이트</span>
+  </div>
+
+  <!-- 영화표 (ADMIT ONE) -->
+  <div class="admit">
+    <div class="admit-main"><b>ADMIT ONE</b><span>BUSAN · 2026 · 10</span></div>
+    <div class="admit-stub">No.<br>031</div>
+  </div>
+
+  <p class="belt-hint">벨트 위 사진을 눌러도<br>탑승할 수 있어요 ↓</p>
+
+  <p class="about-hint">여권을 누르면<br>제 소개가 나와요 →</p>
+
+  <!-- 여행 가방 -->
+  <div class="suitcase" data-open="case" title="가방 열기 · 전체 작품 보기">
+    <span class="click-badge">전체 작품 보기</span>
+    <span class="sc-handle"></span>
+    <div class="sc-body">
+      <span class="sticker k1">BUSAN</span>
+      <span class="sticker k2">✿</span>
+      <span class="sticker k3">FILM<br>FEST</span>
+    </div>
+    <span class="sc-wheel w1"></span><span class="sc-wheel w2"></span>
+  </div>
+</div>
+
+<!-- ===== 키오스크 ===== -->
+
+<!-- ===== 수하물 컨베이어 벨트 =====
+     사진(belt-photo)을 누르면 data-flight 에 적힌 작품의 탑승권이 열립니다.
+     사진 경로는 img src 만 바꾸면 됩니다. --d 는 벨트 위 순서(0~1 사이)입니다. -->
+<div class="belt">
+  <div class="belt-items">
+    <button class="belt-item belt-photo" data-flight="biff1" style="--d:0; --r:-4deg" title="BIFF AIR 탑승권 열기">
+      <img src="images/deco-sunset.jpg" alt="FESTIVAL ENDS"><i class="play-dot">▶</i><span>FESTIVAL ENDS</span></button>
+    <button class="belt-item belt-photo" data-flight="pe" style="--d:0.1; --r:3deg" title="PURPLE EGG AIR 탑승권 열기">
+      <img src="images/deco-pe-mascot.jpg" alt="퍼플에그"><i class="play-dot">▶</i><span>퍼플에그</span></button>
+    <span class="belt-item bag box" style="--d:0.2"></span>
+    <button class="belt-item belt-photo" data-flight="sf" style="--d:0.3; --r:-2deg" title="SHAFFRON AIR 탑승권 열기">
+      <img src="images/deco-prehistoric.jpg" alt="샤프란"><i class="play-dot">▶</i><span>샤프란</span></button>
+    <button class="belt-item belt-photo" data-flight="biff2" style="--d:0.4; --r:4deg" title="BIFF AIR 2 탑승권 열기">
+      <img src="images/deco-mascot.jpg" alt="FESTIVAL ENDS 2"><i class="play-dot">▶</i><span>FESTIVAL ENDS 2</span></button>
+    <span class="belt-item bag case-blue" style="--d:0.5"></span>
+    <button class="belt-item belt-photo" data-flight="biff1" style="--d:0.6; --r:-3deg" title="BIFF AIR 탑승권 열기">
+      <img src="images/biff1.jpg" alt="FESTIVAL ENDS"><i class="play-dot">▶</i><span>FESTIVAL ENDS</span></button>
+    <button class="belt-item belt-photo" data-flight="sf" style="--d:0.7; --r:2deg" title="SHAFFRON AIR 탑승권 열기">
+      <img src="images/deco-mom.jpg" alt="샤프란"><i class="play-dot">▶</i><span>샤프란</span></button>
+    <button class="belt-item belt-photo" data-flight="biff2" style="--d:0.8; --r:-4deg" title="BIFF AIR 2 탑승권 열기">
+      <img src="images/deco-train.jpg" alt="FESTIVAL ENDS 2"><i class="play-dot">▶</i><span>FESTIVAL ENDS 2</span></button>
+    <span class="belt-item bag case-yellow" style="--d:0.9"></span>
+  </div>
+  <div class="belt-track"></div>
+  <div class="belt-legs"></div>
+  <div class="belt-flaps"><i></i><i></i><i></i><i></i><i></i></div>
+</div>
+
+<button class="about-btn" data-open="about">📘 여권 열기 · 소개</button>
+
+<main class="kiosk" id="kiosk">
+  <p class="hint">작품을 골라<br>체크인하세요 ↘</p>
+  <div class="kiosk-sign">Self Check-In</div>
+
+  <div class="kiosk-head">
+    <p class="kiosk-notice">터치스크린 살균 중! 안심하고 이용하세요</p>
+
+    <div class="screen" id="screen">
+      <!-- B : 대기 화면. 아무도 만지지 않으면 작품 장면이 돌아감 -->
+      <div class="screen-attract" id="attract">
+        <video muted playsinline preload="none"></video>
+        <p class="at-title" id="at-title"></p>
+        <p class="at-cta">화면을 터치해 체크인하세요 ☝</p>
+      </div>
+      <!-- 처음 화면 : 작품 고르기 -->
+      <div class="screen-select">
+        <p class="screen-title">탑승할 작품을 선택하세요</p>
+        <p class="screen-sub">작품 4편 · 화면을 위로 올리면 더 있어요 ↓</p>
+
+        <!-- 작품 버튼. data-flight 값이 아래 탑승권 id(pass-○○)와 짝입니다 -->
+        <div class="tiles">
+          <!-- 버튼 하나 = 작품 하나. 사진(tile-thumb) · 제목(tile-title) · 설명(tile-meta)을 바꾸면 됩니다 -->
+          <button class="tile" data-flight="sf" style="--c:#E2457A">
+            <img class="tile-thumb" src="images/shaffron.jpg" alt="">
+            <span class="tile-title">조상님, 이제 한 장이면 됩니다</span>
+            <span class="tile-meta"><em class="tile-tag">AI 실사</em>샤프란 광고 · 1:51</span>
+          </button>
+          <button class="tile" data-flight="biff1" style="--c:#2F6BFF">
+            <img class="tile-thumb" src="images/biff1.jpg" alt="">
+            <span class="tile-title">WHEN THE FESTIVAL ENDS</span>
+            <span class="tile-meta"><em class="tile-tag">AI 애니</em>부산국제영화제 · 1:28</span>
+          </button>
+          <button class="tile" data-flight="biff2" style="--c:#E5391F">
+            <img class="tile-thumb" src="images/biff2.jpg" alt="">
+            <span class="tile-title">WHEN THE FESTIVAL ENDS 2</span>
+            <span class="tile-meta"><em class="tile-tag">AI 실사</em>부산국제영화제 · 1:26</span>
+          </button>
+          <button class="tile" data-flight="pe" style="--c:#7B3FF2">
+            <img class="tile-thumb" src="images/deco-pe-mascot.jpg" alt="">
+            <span class="tile-title">퍼플에그</span>
+            <span class="tile-meta"><em class="tile-tag">모션그래픽</em>학습 안내 영상 · 0:50</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 출력 중 화면 -->
+      <div class="screen-print">
+        <p class="screen-title" id="screen-msg">탑승권을 출력하고 있습니다</p>
+        <div class="dots"><i></i><i></i><i></i></div>
+        <button class="screen-back" id="screen-back">↺ 다른 작품 고르기</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="kiosk-panel">
+    <div class="slot-group"><span>수하물 태그</span><i class="slot"></i></div>
+    <div class="slot-group"><span>카드</span><i class="slot small"></i></div>
+  </div>
+
+  <div class="kiosk-desk">
+    <div class="reader"><span>바코드</span><i></i></div>
+
+    <div class="printer">
+      <span class="printer-label">탑승권</span>
+      <div class="printer-grill"></div>
+      <!-- 프린터에서 나오는 작은 탑승권 (누르면 크게 열림) -->
+      <div class="print-out">
+        <button class="mini" data-flight="sf" style="--c:#E2457A">
+          <span class="mini-air">SHAFFRON AIR</span>
+          <span class="mini-route">PRE ✈ NOW</span>
+          <span class="mini-title">조상님, 이제<br>한 장이면 됩니다</span>
+          <span class="mini-tap">눌러서 탑승 ▶</span>
+        </button>
+        <button class="mini" data-flight="biff1" style="--c:#2F6BFF">
+          <span class="mini-air">BIFF AIR</span>
+          <span class="mini-route">SEL ✈ PUS</span>
+          <span class="mini-title">WHEN THE<br>FESTIVAL ENDS</span>
+          <span class="mini-tap">눌러서 탑승 ▶</span>
+        </button>
+        <button class="mini" data-flight="biff2" style="--c:#E5391F">
+          <span class="mini-air">BIFF AIR 2</span>
+          <span class="mini-route">SEL ✈ PUS</span>
+          <span class="mini-title">WHEN THE<br>FESTIVAL ENDS 2</span>
+          <span class="mini-tap">눌러서 탑승 ▶</span>
+        </button>
+        <button class="mini" data-flight="pe" style="--c:#7B3FF2">
+          <span class="mini-air">PURPLE EGG AIR</span>
+          <span class="mini-route">S01 ✈ S05</span>
+          <span class="mini-title">퍼플에그</span>
+          <span class="mini-tap">눌러서 탑승 ▶</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="kiosk-base"></div>
+</main>
+</div><!-- /stage -->
 
 
+<!-- ===== 크게 열리는 탑승권 =====
+     id="pass-○○" 하나가 작품 하나입니다. 복사해서 늘릴 수 있습니다. -->
+<!-- ===== 첫 화면 (랜딩) : 종이비행기가 날아와 펼쳐지며 탑승 안내가 됨 =====
+     처음 방문했을 때만 나옵니다. 위쪽 "? 이용 안내" 버튼으로 다시 볼 수 있습니다. -->
+<!-- B : 위쪽 안내판 = 이용 안내 버튼 · 안내 방송(누르면 해당 물건 표시) · 탑승 기록(본 작품 수) -->
+<div class="board-b" id="board-b">
+  <button class="guide-btn" id="guide-btn">? 이용 안내</button>
+  <button class="bb-msg" id="bb-msg"><span class="bb-ico">📢</span><span class="bb-text" id="bb-text"></span></button>
+  <button class="bb-stamps" id="bb-stamps" title="여권에서 탑승 기록 보기"><span class="bb-dots" id="bb-dots"></span><span id="bb-count"></span></button>
+</div>
+<p class="toast-b" id="toast-b"></p>
+<div class="landing" id="landing">
+  <div class="ld-sky"><span class="ld-cloud c1"></span><span class="ld-cloud c2"></span><span class="ld-cloud c3"></span><span class="ld-cloud c4"></span></div>
+  <!-- 종이비행기 : 면 4개로 그려서, 펼치면 종이 한 장이 됨 (script.js 가 움직임) -->
+  <svg class="ld-svg" id="ld-svg" aria-hidden="true">
+    <defs>
+      <filter id="paper-grain" x="-20%" y="-20%" width="140%" height="160%">
+        <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="3" result="noise"/>
+        <feColorMatrix in="noise" type="matrix" values="0 0 0 0 .45  0 0 0 0 .40  0 0 0 0 .33  0 0 0 .10 0" result="grain"/>
+        <feComposite in="grain" in2="SourceGraphic" operator="in" result="grainIn"/>
+        <feMerge result="paper"><feMergeNode in="SourceGraphic"/><feMergeNode in="grainIn"/></feMerge>
+        <feDropShadow in="paper" dx="0" dy="14" stdDeviation="12" flood-color="#1C2033" flood-opacity=".18"/>
+      </filter>
+    </defs>
+    <g filter="url(#paper-grain)">
+      <polygon class="ld-face"/><polygon class="ld-face"/><polygon class="ld-face"/><polygon class="ld-face"/>
+    </g>
+    <g class="ld-creases"><line/><line/></g>
+  </svg>
+  <!-- 펼쳐진 종이 위의 탑승 안내 (문구는 여기서 바꾸면 됩니다) -->
+  <div class="ld-card" id="ld-card" role="dialog" aria-labelledby="guide-title">
+    <p class="ld-band">PASSENGER NOTICE · 탑승 안내</p>
+    <div class="guide-body">
+      <h2 id="guide-title">박진표 <span>朴珍漂</span></h2>
+      <p class="guide-lead">AI 영상 포트폴리오 · 작품 <span id="guide-count"></span>편</p>
+      <p class="guide-intro">AI로 장면을 만들고 애프터이펙트와 프리미어로 완성한 영상들을 공항처럼 꾸몄습니다.<br>노란 <em>이름표</em>가 붙은 것은 모두 눌러 볼 수 있어요. 작품을 볼 때마다 여권에 도장이 찍혀요.</p>
+      <ul class="guide-list">
+        <li><i class="gi gi-kiosk"></i><div><b>키오스크</b>작품을 고르면 탑승권이 나와요. 탑승권을 누르면 영상이 열려요.</div></li>
+        <li><i class="gi gi-belt"></i><div><b>벨트 위 사진</b>누르면 그 작품 영상이 바로 열려요.</div></li>
+        <li class="wide-only"><i class="gi gi-case"></i><div><b>분홍 가방</b>모든 작품을 한눈에 볼 수 있어요.</div></li>
+        <li class="wide-only"><i class="gi gi-tag"></i><div><b>노란 태그</b>작품별 기획서 · 스토리보드를 볼 수 있어요.</div></li>
+        <li><i class="gi gi-pass"></i><div><b>여권</b>제 소개와 사용하는 도구예요.</div></li>
+        <li class="wide-only"><i class="gi gi-window"></i><div><b>비행기 창문</b>마우스를 올리면 작품 하이라이트가 나와요.</div></li>
+      </ul>
+      <button class="guide-go" id="guide-go">체크인하러 가기 ✈</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 가방이 열리는 장면 (가방을 눌렀을 때 잠깐 나옴) ===== -->
+<div class="case-intro" id="case-intro">
+  <!-- 구석의 가방과 똑같이 생긴 "열리는 가방". 원래 가방 자리에 겹쳐져서 뚜껑만 열림 -->
+  <div class="ci-bag">
+    <span class="sc-handle"></span>
+    <div class="ci-body">
+      <div class="ci-base"><div class="ci-lining" id="ci-lining"></div></div>
+      <div class="ci-lid">
+        <div class="ci-lid-face">
+          <span class="sticker k1">BUSAN</span><span class="sticker k2">✿</span><span class="sticker k3">FILM<br>FEST</span>
+        </div>
+        <div class="ci-lid-in"></div>
+      </div>
+    </div>
+    <span class="sc-wheel w1"></span><span class="sc-wheel w2"></span>
+  </div>
+</div>
+
+<!-- ===== 기획서 · 스토리보드 (노란 BAGGAGE 태그를 눌렀을 때) =====
+     카드는 script.js 가 탑승권의 "기획서 · 스토리보드 보기" 버튼(.pass-doc)이 있는 작품만 골라 자동으로 만듭니다. -->
+<section class="docs" id="docs">
+  <div class="docs-inner">
+    <header class="case-head docs-head">
+      <p><b>BAGGAGE</b> 기획서 · 스토리보드 · <span id="docs-count"></span></p>
+      <p class="case-hint">태그를 누르면 PDF가 새 창으로 열려요</p>
+      <button class="case-close docs-close" aria-label="닫기">✕</button>
+    </header>
+    <div class="docs-list" id="docs-list"></div>
+  </div>
+</section>
+
+<!-- ===== 가방 속 : 전체 작품 바둑판 =====
+     카드는 script.js 가 키오스크 작품 버튼(.tile)과 탑승권(.pass) 내용을 읽어서 자동으로 만듭니다.
+     작품을 추가하면 여기는 고칠 필요가 없습니다. -->
+<section class="case" id="case">
+  <div class="case-lining">
+    <header class="case-head">
+      <p><b>BAGGAGE CLAIM</b> 수하물 찾는 곳 · <span id="case-count"></span></p>
+      <p class="case-hint">카드에 마우스를 올리면 미리보기, 누르면 탑승권이 열려요</p>
+      <button class="case-close" aria-label="닫기">✕</button>
+    </header>
+    <div class="case-grid" id="case-grid"></div>
+  </div>
+</section>
+
+<div class="overlay" id="overlay">
+
+  <!-- ===== 소개 (여권 펼친 면) =====
+       도구 도장은 <li class="visa"> 하나가 도장 하나입니다. 복사해서 늘리거나 지우면 됩니다. -->
+  <article class="pass about" id="pass-about">
+    <button class="pass-close" aria-label="닫기">✕</button>
+
+    <section class="pp-page pp-id">
+      <p class="pp-head">PASSPORT · 여권 <span>KOR</span></p>
+      <div class="pp-id-row">
+        <dl class="pp-fields">
+          <div><dt>성명 / NAME</dt><dd>박진표 <span class="pp-hanja">朴珍漂</span></dd></div>
+          <div><dt>국적 / NATIONALITY</dt><dd>KOREA</dd></div>
+          <div><dt>직업 / ROLE</dt><dd>영상 연출 · 시나리오</dd></div>
+          <div><dt>여행지 / WORKS</dt><dd>광고 · 홍보영상 · 모션그래픽</dd></div>
+        </dl>
+      </div>
+      <p class="pp-intro">글을 쓰고 영상을 만듭니다. 문예창작을 전공했고 단편영화의 시나리오와 연출을 해 왔습니다. 지금은 AI로 장면을 만들고 애프터이펙트와 프리미어로 다듬어 한 편의 영상으로 완성합니다.</p>
+      <p class="pp-mrz">P&lt;KOR&lt;&lt;PORTFOLIO&lt;&lt;SELF&lt;CHECK&lt;IN&lt;&lt;&lt;&lt;&lt;&lt;<br>AI&lt;VIDEO&lt;&lt;AFTER&lt;EFFECTS&lt;&lt;PREMIERE&lt;&lt;2026</p>
+    </section>
+
+    <section class="pp-page pp-visas">
+      <p class="pp-head">VISAS · 사용하는 도구</p>
+
+      <p class="visa-group">AI TOOLS</p>
+      <ul class="visa-list">
+        <li class="visa" style="--v:#2F64E0; --t:-8deg">
+          <svg viewBox="0 0 40 40"><path d="M4 26c6-10 10-10 16 0s10 10 16 0" /><path d="M4 16c6-10 10-10 16 0s10 10 16 0" /></svg>
+          <b>Google Flow</b><small>AI 영상 생성</small></li>
+        <li class="visa" style="--v:#E2457A; --t:6deg">
+          <svg viewBox="0 0 40 40"><circle cx="15" cy="20" r="9" /><circle cx="25" cy="20" r="9" /></svg>
+          <b>Gemini</b><small>이미지 · 아이디어</small></li>
+        <li class="visa" style="--v:#D9822B; --t:-4deg">
+          <svg viewBox="0 0 40 40"><path d="M8 30l4-1 18-18-3-3-18 18z" /><path d="M8 34h24" /></svg>
+          <b>Claude</b><small>기획 · 글</small></li>
+        <li class="visa" style="--v:#2E9C6A; --t:9deg">
+          <svg viewBox="0 0 40 40"><path d="M6 8h28v18H18l-8 7v-7H6z" /><path d="M12 15h16M12 20h10" /></svg>
+          <b>ChatGPT</b><small>기획 · 프롬프트</small></li>
+      </ul>
+
+      <p class="visa-group">EDIT TOOLS</p>
+      <ul class="visa-list">
+        <li class="visa" style="--v:#7B3FF2; --t:5deg">
+          <svg viewBox="0 0 40 40"><rect x="6" y="10" width="20" height="16" rx="2" /><rect x="14" y="16" width="20" height="16" rx="2" /><path d="M24 6l3 3-3 3-3-3z" /></svg>
+          <b>After Effects</b><small>모션 · 합성</small></li>
+        <li class="visa" style="--v:#1C2033; --t:-7deg">
+          <svg viewBox="0 0 40 40"><rect x="4" y="10" width="32" height="20" rx="2" /><path d="M4 15h32M4 25h32M10 10v5M18 10v5M26 10v5M10 25v5M18 25v5M26 25v5" /></svg>
+          <b>Premiere Pro</b><small>편집</small></li>
+      </ul>
+
+      <p class="visa-group">STAMPS · 탑승 기록 <span id="pp-stamp-count"></span></p>
+      <ul class="stamp-list" id="stamp-list"></ul>
+    </section>
+  </article>
+
+  <article class="pass" id="pass-sf" style="--c:#E2457A">
+    <button class="pass-close" aria-label="닫기">✕</button>
+    <div class="pass-media">
+      <div class="pass-frame">
+        <video controls preload="metadata" poster="images/shaffron.jpg">
+          <source src="videos/shaffron.mp4" type="video/mp4">
+        </video>
+        <span class="tape t1"></span><span class="tape t2"></span>
+      </div>
+    </div>
+    <div class="pass-body">
+      <p class="pass-air">SHAFFRON AIR · BOARDING PASS</p>
+      <h2 class="pass-title">조상님,<br>이제 한 장이면 됩니다</h2>
+      <div class="pass-route">
+        <div><b>PRE</b><small>선사시대</small></div>
+        <span>✈</span>
+        <div><b>NOW</b><small>2026 원룸</small></div>
+      </div>
+      <dl class="pass-info">
+        <div><dt>FLIGHT</dt><dd>SF 1978</dd></div>
+        <div><dt>TIME</dt><dd>1:51</dd></div>
+        <div><dt>DATE</dt><dd>2026.10</dd></div>
+        <div><dt>CLASS</dt><dd>AI 실사 코믹</dd></div>
+      </dl>
+      <p class="pass-desc">옷에 향을 남기려다 실패해 온 반만년. 현대인이 시트 한 장을 넣는 순간, 각 시대의 하늘에서 시트가 내려온다.</p>
+      <a class="pass-doc" href="docs/shaffron.pdf" target="_blank">📄 기획서 · 스토리보드 보기</a>
+    </div>
+    <div class="pass-stub">
+      <p>GATE</p><b>A1</b>
+      <p>SEAT</p><b>19B</b>
+      <div class="barcode"></div>
+    </div>
+    <div class="pass-stamp">BOARDED</div>
+    <p class="pass-memo">반만년 걸린 여행 ✿</p>
+  </article>
+
+  <article class="pass" id="pass-biff1" style="--c:#2F6BFF">
+    <button class="pass-close" aria-label="닫기">✕</button>
+    <div class="pass-media">
+      <div class="pass-frame">
+        <video controls preload="metadata" poster="images/biff1.jpg">
+          <source src="videos/biff1.mp4" type="video/mp4">
+        </video>
+        <span class="tape t1"></span><span class="tape t2"></span>
+      </div>
+    </div>
+    <div class="pass-body">
+      <p class="pass-air">BIFF AIR · BOARDING PASS</p>
+      <h2 class="pass-title">WHEN THE<br>FESTIVAL ENDS</h2>
+      <div class="pass-route">
+        <div><b>SEL</b><small>서울</small></div>
+        <span>✈</span>
+        <div><b>PUS</b><small>부산</small></div>
+      </div>
+      <dl class="pass-info">
+        <div><dt>FLIGHT</dt><dd>BF 0101</dd></div>
+        <div><dt>TIME</dt><dd>1:28</dd></div>
+        <div><dt>DATE</dt><dd>2026.09</dd></div>
+        <div><dt>CLASS</dt><dd>AI 애니메이션</dd></div>
+      </dl>
+      <p class="pass-desc">휴대폰 배터리가 꺼진 출근길, 지하철 문이 열리자 바다가 나온다. 준영은 바다에 뛰어들어 영화 필름 사이를 헤엄친다. 그래픽노블 스타일의 부산국제영화제 홍보영상.</p>
+      <a class="pass-doc" href="docs/biff1.pdf" target="_blank">📄 기획서 · 스토리보드 보기</a>
+    </div>
+    <div class="pass-stub">
+      <p>GATE</p><b>B2</b>
+      <p>SEAT</p><b>07A</b>
+      <div class="barcode"></div>
+    </div>
+    <div class="pass-stamp">BOARDED</div>
+    <p class="pass-memo">바다 속 영화관 ◐</p>
+  </article>
+
+  <article class="pass" id="pass-biff2" style="--c:#E5391F">
+    <button class="pass-close" aria-label="닫기">✕</button>
+    <div class="pass-media">
+      <div class="pass-frame">
+        <video controls preload="metadata" poster="images/biff2.jpg">
+          <source src="videos/biff2.mp4" type="video/mp4">
+        </video>
+        <span class="tape t1"></span><span class="tape t2"></span>
+      </div>
+    </div>
+    <div class="pass-body">
+      <p class="pass-air">BIFF AIR 2 · BOARDING PASS</p>
+      <h2 class="pass-title">WHEN THE<br>FESTIVAL ENDS 2</h2>
+      <div class="pass-route">
+        <div><b>SEL</b><small>서울</small></div>
+        <span>✈</span>
+        <div><b>PUS</b><small>부산</small></div>
+      </div>
+      <dl class="pass-info">
+        <div><dt>FLIGHT</dt><dd>BF 0202</dd></div>
+        <div><dt>TIME</dt><dd>1:26</dd></div>
+        <div><dt>DATE</dt><dd>2026.09</dd></div>
+        <div><dt>CLASS</dt><dd>AI 실사 로맨틱 코미디</dd></div>
+      </dl>
+      <p class="pass-desc">시간에 쫓기던 회사원 준영이, 의인화된 부산국제영화제 ‘화제’와 다시 만나 영화와 재회하는 이야기.</p>
+      <a class="pass-doc" href="docs/biff2.pdf" target="_blank">📄 기획서 · 스토리보드 보기</a>
+    </div>
+    <div class="pass-stub">
+      <p>GATE</p><b>B3</b>
+      <p>SEAT</p><b>14C</b>
+      <div class="barcode"></div>
+    </div>
+    <div class="pass-stamp">BOARDED</div>
+  </article>
+
+  <article class="pass" id="pass-pe" style="--c:#7B3FF2">
+    <button class="pass-close" aria-label="닫기">✕</button>
+    <div class="pass-media">
+      <div class="pass-frame">
+        <video controls preload="metadata" poster="images/purpleegg.jpg">
+          <source src="videos/purpleegg.mp4" type="video/mp4">
+        </video>
+        <span class="tape t1"></span><span class="tape t2"></span>
+      </div>
+    </div>
+    <div class="pass-body">
+      <p class="pass-air">PURPLE EGG AIR · BOARDING PASS</p>
+      <h2 class="pass-title">퍼플에그</h2>
+      <div class="pass-route">
+        <div><b>S01</b><small>어떻게 했는지</small></div>
+        <span>✈</span>
+        <div><b>S05</b><small>한 문장으로</small></div>
+      </div>
+      <dl class="pass-info">
+        <div><dt>FLIGHT</dt><dd>PE 0805</dd></div>
+        <div><dt>TIME</dt><dd>0:50</dd></div>
+        <div><dt>DATE</dt><dd>2026.11</dd></div>
+        <div><dt>CLASS</dt><dd>모션그래픽</dd></div>
+      </dl>
+      <p class="pass-desc">초등 문해력 플랫폼 퍼플에그의 학습 안내 영상. 문장의 서술어를 먼저 찾고 다섯 단계를 거쳐 한 문장으로 요약하는 ‘서술어 앵커링’을 보여 준다.</p>
+    </div>
+    <div class="pass-stub">
+      <p>GATE</p><b>C4</b>
+      <p>SEAT</p><b>05A</b>
+      <div class="barcode"></div>
+    </div>
+    <div class="pass-stamp">BOARDED</div>
+  </article>
+
+</div>
+
+<script src="script.js"></script>
+<script src="alt.js"></script>  <!-- B 버전에서 더한 것 -->
 </body>
 </html>
